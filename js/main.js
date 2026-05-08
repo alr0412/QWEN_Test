@@ -1,294 +1,389 @@
-// ===== DOM Elements =====
-const navbar = document.querySelector('.navbar');
-const hamburger = document.querySelector('.hamburger');
-const navLinks = document.querySelector('.nav-links');
-const navLinksItems = document.querySelectorAll('.nav-links a');
-const testimonialCards = document.querySelectorAll('.testimonial-card');
-const dots = document.querySelectorAll('.dot');
-const prevBtn = document.querySelector('.slider-btn.prev');
-const nextBtn = document.querySelector('.slider-btn.next');
-const statNumbers = document.querySelectorAll('.stat-number');
-
-let currentTestimonial = 0;
-let statsAnimated = false;
-
-// ===== Navbar Scroll Effect =====
-window.addEventListener('scroll', () => {
-    if (window.scrollY > 50) {
-        navbar.classList.add('scrolled');
-    } else {
-        navbar.classList.remove('scrolled');
-    }
-    
-    // Animate stats when visible
-    const statsSection = document.querySelector('.stats-container');
-    const statsPosition = statsSection.getBoundingClientRect().top;
-    const screenPosition = window.innerHeight / 1.3;
-    
-    if (statsPosition < screenPosition && !statsAnimated) {
-        animateStats();
-        statsAnimated = true;
-    }
-});
-
-// ===== Mobile Menu Toggle =====
-hamburger.addEventListener('click', () => {
-    navLinks.classList.toggle('active');
-    hamburger.classList.toggle('active');
-});
-
-// ===== Smooth Scrolling for Nav Links =====
-navLinksItems.forEach(link => {
-    link.addEventListener('click', (e) => {
-        e.preventDefault();
-        const targetId = link.getAttribute('href');
-        const targetSection = document.querySelector(targetId);
+// Fish class for creating and managing fish
+class Fish {
+    constructor(container) {
+        this.container = container;
+        this.element = null;
+        this.x = Math.random() * (window.innerWidth - 100);
+        this.y = Math.random() * (window.innerHeight * 0.6);
+        this.speed = 1 + Math.random() * 2;
+        this.direction = Math.random() > 0.5 ? 1 : -1;
+        this.size = 30 + Math.random() * 40;
+        this.colorClass = this.getRandomColor();
+        this.swimAngle = 0;
         
-        if (targetSection) {
-            const offsetTop = targetSection.offsetTop - 80;
-            window.scrollTo({
-                top: offsetTop,
-                behavior: 'smooth'
-            });
-            
-            // Close mobile menu
-            navLinks.classList.remove('active');
-            
-            // Update active state
-            navLinksItems.forEach(item => item.classList.remove('active'));
-            link.classList.add('active');
-        }
-    });
-});
-
-// ===== Update Active Nav Link on Scroll =====
-const sections = document.querySelectorAll('section[id]');
-
-window.addEventListener('scroll', () => {
-    let current = '';
+        this.createFish();
+    }
     
-    sections.forEach(section => {
-        const sectionTop = section.offsetTop;
-        const sectionHeight = section.clientHeight;
+    getRandomColor() {
+        const colors = [
+            'fish-orange', 'fish-blue', 'fish-yellow', 
+            'fish-purple', 'fish-pink', 'fish-green', 
+            'fish-red', 'fish-teal'
+        ];
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
+    
+    createFish() {
+        this.element = document.createElement('div');
+        this.element.className = 'fish';
+        this.element.style.width = `${this.size}px`;
+        this.element.style.height = `${this.size * 0.6}px`;
         
-        if (window.scrollY >= sectionTop - 200) {
-            current = section.getAttribute('id');
-        }
-    });
-    
-    navLinksItems.forEach(item => {
-        item.classList.remove('active');
-        if (item.getAttribute('href') === `#${current}`) {
-            item.classList.add('active');
-        }
-    });
-});
-
-// ===== Testimonials Slider =====
-function showTestimonial(index) {
-    testimonialCards.forEach((card, i) => {
-        card.classList.remove('active');
-        dots[i].classList.remove('active');
-    });
-    
-    testimonialCards[index].classList.add('active');
-    dots[index].classList.add('active');
-}
-
-prevBtn.addEventListener('click', () => {
-    currentTestimonial--;
-    if (currentTestimonial < 0) {
-        currentTestimonial = testimonialCards.length - 1;
-    }
-    showTestimonial(currentTestimonial);
-});
-
-nextBtn.addEventListener('click', () => {
-    currentTestimonial++;
-    if (currentTestimonial >= testimonialCards.length) {
-        currentTestimonial = 0;
-    }
-    showTestimonial(currentTestimonial);
-});
-
-dots.forEach((dot, index) => {
-    dot.addEventListener('click', () => {
-        currentTestimonial = index;
-        showTestimonial(currentTestimonial);
-    });
-});
-
-// Auto-advance testimonials
-setInterval(() => {
-    currentTestimonial++;
-    if (currentTestimonial >= testimonialCards.length) {
-        currentTestimonial = 0;
-    }
-    showTestimonial(currentTestimonial);
-}, 5000);
-
-// ===== Counter Animation for Stats =====
-function animateStats() {
-    statNumbers.forEach(stat => {
-        const target = parseInt(stat.getAttribute('data-target'));
-        const duration = 2000;
-        const increment = target / (duration / 16);
-        let current = 0;
+        // Fish body
+        const body = document.createElement('div');
+        body.className = `fish-body ${this.colorClass}`;
+        body.style.width = '100%';
+        body.style.height = '100%';
         
-        const updateCounter = () => {
-            current += increment;
-            if (current < target) {
-                if (target >= 1000) {
-                    stat.textContent = Math.floor(current).toLocaleString();
-                } else {
-                    stat.textContent = Math.floor(current);
-                }
-                requestAnimationFrame(updateCounter);
-            } else {
-                if (target >= 1000) {
-                    stat.textContent = target.toLocaleString() + '+';
-                } else {
-                    stat.textContent = target + '+';
-                }
-            }
+        // Fish eye
+        const eye = document.createElement('div');
+        eye.style.position = 'absolute';
+        eye.style.width = `${this.size * 0.15}px`;
+        eye.style.height = `${this.size * 0.15}px`;
+        eye.style.background = 'white';
+        eye.style.borderRadius = '50%';
+        eye.style.top = '15%';
+        eye.style.left = this.direction > 0 ? '75%' : '10%';
+        eye.style.boxShadow = 'inset 2px 2px 5px rgba(0,0,0,0.3)';
+        
+        const pupil = document.createElement('div');
+        pupil.style.position = 'absolute';
+        pupil.style.width = '40%';
+        pupil.style.height = '40%';
+        pupil.style.background = 'black';
+        pupil.style.borderRadius = '50%';
+        pupil.style.top = '30%';
+        pupil.style.left = '30%';
+        eye.appendChild(pupil);
+        
+        // Fish tail
+        const tail = document.createElement('div');
+        tail.className = 'fish-tail';
+        tail.style.width = `${this.size * 0.4}px`;
+        tail.style.height = `${this.size * 0.5}px`;
+        tail.style.background = `linear-gradient(135deg, 
+            ${this.getColorFromClass()} 0%, 
+            ${this.lightenColor(this.getColorFromClass())} 100%)`;
+        tail.style.top = '25%';
+        tail.style.left = this.direction > 0 ? '-35%' : '95%';
+        
+        // Fish fin
+        const fin = document.createElement('div');
+        fin.className = 'fish-fin';
+        fin.style.width = `${this.size * 0.3}px`;
+        fin.style.height = `${this.size * 0.2}px`;
+        fin.style.background = `linear-gradient(135deg, 
+            ${this.getColorFromClass()} 0%, 
+            ${this.lightenColor(this.getColorFromClass())} 100%)`;
+        fin.style.top = '-20%';
+        fin.style.left = '35%';
+        
+        body.appendChild(eye);
+        body.appendChild(tail);
+        body.appendChild(fin);
+        this.element.appendChild(body);
+        
+        this.container.appendChild(this.element);
+        this.updatePosition();
+    }
+    
+    getColorFromClass() {
+        const colorMap = {
+            'fish-orange': '#ff6b35',
+            'fish-blue': '#0066cc',
+            'fish-yellow': '#ffd700',
+            'fish-purple': '#8b00ff',
+            'fish-pink': '#ff1493',
+            'fish-green': '#00ff7f',
+            'fish-red': '#dc143c',
+            'fish-teal': '#008080'
         };
-        
-        updateCounter();
-    });
-}
-
-// ===== Wishlist Button Toggle =====
-const wishlistBtns = document.querySelectorAll('.wishlist-btn');
-
-wishlistBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const icon = btn.querySelector('i');
-        icon.classList.toggle('far');
-        icon.classList.toggle('fas');
-        
-        if (icon.classList.contains('fas')) {
-            btn.style.background = '#f59e0b';
-            btn.style.color = '#ffffff';
-        } else {
-            btn.style.background = '#ffffff';
-            btn.style.color = '';
-        }
-    });
-});
-
-// ===== Form Submission =====
-const bookingForm = document.getElementById('bookingForm');
-
-bookingForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    // Get form values
-    const formData = new FormData(bookingForm);
-    
-    // Show success message (in real app, you'd send to server)
-    alert('Thank you for your message! We will get back to you soon.');
-    bookingForm.reset();
-});
-
-// ===== Newsletter Form =====
-const newsletterForm = document.querySelector('.newsletter-form');
-
-if (newsletterForm) {
-    newsletterForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        alert('Thank you for subscribing to our newsletter!');
-        newsletterForm.reset();
-    });
-}
-
-// ===== Intersection Observer for Animations =====
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -100px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-        }
-    });
-}, observerOptions);
-
-// Observe destination cards and service cards
-const animatedElements = document.querySelectorAll('.destination-card, .service-card');
-
-animatedElements.forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(30px)';
-    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-    observer.observe(el);
-});
-
-// ===== Parallax Effect for Hero Section =====
-window.addEventListener('scroll', () => {
-    const hero = document.querySelector('.hero');
-    const scrolled = window.scrollY;
-    
-    if (scrolled < hero.offsetHeight) {
-        const floatingElements = document.querySelectorAll('.floating-element');
-        floatingElements.forEach((el, index) => {
-            const speed = (index + 1) * 0.5;
-            el.style.transform = `translateY(${scrolled * speed}px)`;
-        });
+        return colorMap[this.colorClass] || '#ff6b35';
     }
-});
+    
+    lightenColor(color) {
+        // Simple color lightening
+        const hex = color.replace('#', '');
+        const r = Math.min(255, parseInt(hex.substr(0, 2), 16) + 40);
+        const g = Math.min(255, parseInt(hex.substr(2, 2), 16) + 40);
+        const b = Math.min(255, parseInt(hex.substr(4, 2), 16) + 40);
+        return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    }
+    
+    updatePosition() {
+        this.element.style.left = `${this.x}px`;
+        this.element.style.top = `${this.y}px`;
+        this.element.style.transform = `scaleX(${this.direction}) rotate(${Math.sin(this.swimAngle) * 10}deg)`;
+    }
+    
+    swim() {
+        this.x += this.speed * this.direction;
+        this.swimAngle += 0.05;
+        
+        // Add some vertical movement
+        this.y += Math.sin(this.swimAngle) * 0.5;
+        
+        // Boundary checking with smooth turning
+        if (this.x > window.innerWidth - this.size) {
+            this.direction = -1;
+        } else if (this.x < 0) {
+            this.direction = 1;
+        }
+        
+        // Keep fish in upper 80% of screen
+        const maxY = window.innerHeight * 0.7;
+        const minY = 50;
+        if (this.y > maxY) {
+            this.y = maxY;
+        } else if (this.y < minY) {
+            this.y = minY;
+        }
+        
+        this.updatePosition();
+    }
+    
+    remove() {
+        if (this.element && this.element.parentNode) {
+            this.element.parentNode.removeChild(this.element);
+        }
+    }
+}
 
-// ===== CTA Button Click =====
-const ctaBtn = document.querySelector('.cta-btn');
-const exploreBtn = document.querySelector('.btn-primary');
+// Bubble class
+class Bubble {
+    constructor(container) {
+        this.container = container;
+        this.element = null;
+        this.x = Math.random() * window.innerWidth;
+        this.y = window.innerHeight + Math.random() * 100;
+        this.size = 5 + Math.random() * 15;
+        this.speed = 1 + Math.random() * 2;
+        this.wobble = Math.random() * Math.PI * 2;
+        
+        this.createBubble();
+    }
+    
+    createBubble() {
+        this.element = document.createElement('div');
+        this.element.className = 'bubble';
+        this.element.style.width = `${this.size}px`;
+        this.element.style.height = `${this.size}px`;
+        this.element.style.left = `${this.x}px`;
+        this.element.style.animationDuration = `${8 + Math.random() * 4}s`;
+        
+        this.container.appendChild(this.element);
+    }
+    
+    rise() {
+        this.y -= this.speed;
+        this.wobble += 0.05;
+        this.x += Math.sin(this.wobble) * 0.5;
+        
+        this.element.style.top = `${this.y}px`;
+        this.element.style.left = `${this.x}px`;
+        
+        // Reset bubble when it reaches top
+        if (this.y < -50) {
+            this.y = window.innerHeight + Math.random() * 100;
+            this.x = Math.random() * window.innerWidth;
+        }
+    }
+    
+    remove() {
+        if (this.element && this.element.parentNode) {
+            this.element.parentNode.removeChild(this.element);
+        }
+    }
+}
 
-[ctaBtn, exploreBtn].forEach(btn => {
-    if (btn) {
-        btn.addEventListener('click', () => {
-            const destinationsSection = document.querySelector('#destinations');
-            if (destinationsSection) {
-                const offsetTop = destinationsSection.offsetTop - 80;
-                window.scrollTo({
-                    top: offsetTop,
-                    behavior: 'smooth'
-                });
+// Plant class
+class Plant {
+    constructor(container, x) {
+        this.container = container;
+        this.element = null;
+        this.x = x;
+        this.height = 40 + Math.random() * 60;
+        this.width = 10 + Math.random() * 15;
+        this.delay = Math.random() * 2;
+        
+        this.createPlant();
+    }
+    
+    createPlant() {
+        this.element = document.createElement('div');
+        this.element.className = 'plant';
+        this.element.style.left = `${this.x}px`;
+        this.element.style.height = `${this.height}px`;
+        this.element.style.width = `${this.width}px`;
+        this.element.style.animationDelay = `${this.delay}s`;
+        
+        // Add multiple segments for more natural look
+        const segments = 3 + Math.floor(Math.random() * 3);
+        for (let i = 0; i < segments; i++) {
+            const segment = document.createElement('div');
+            segment.style.position = 'absolute';
+            segment.style.bottom = `${i * 15}px`;
+            segment.style.width = `${this.width * (1 - i * 0.1)}px`;
+            segment.style.height = '20px';
+            segment.style.background = 'linear-gradient(0deg, #2d5016 0%, #4a8024 100%)';
+            segment.style.borderRadius = '50% 50% 0 0';
+            segment.style.left = '50%';
+            segment.style.transform = 'translateX(-50%)';
+            this.element.appendChild(segment);
+        }
+        
+        this.container.appendChild(this.element);
+    }
+    
+    remove() {
+        if (this.element && this.element.parentNode) {
+            this.element.parentNode.removeChild(this.element);
+        }
+    }
+}
+
+// Rock class
+class Rock {
+    constructor(container, x) {
+        this.container = container;
+        this.element = null;
+        this.x = x;
+        this.width = 30 + Math.random() * 50;
+        this.height = 20 + Math.random() * 30;
+        
+        this.createRock();
+    }
+    
+    createRock() {
+        this.element = document.createElement('div');
+        this.element.className = 'rock';
+        this.element.style.left = `${this.x}px`;
+        this.element.style.width = `${this.width}px`;
+        this.element.style.height = `${this.height}px`;
+        
+        this.container.appendChild(this.element);
+    }
+    
+    remove() {
+        if (this.element && this.element.parentNode) {
+            this.element.parentNode.removeChild(this.element);
+        }
+    }
+}
+
+// Main Aquarium Manager
+class Aquarium {
+    constructor() {
+        this.fishContainer = document.getElementById('fish-container');
+        this.bubblesContainer = document.getElementById('bubbles');
+        this.plantsContainer = document.getElementById('plants');
+        this.rocksContainer = document.getElementById('rocks');
+        
+        this.fishes = [];
+        this.bubbles = [];
+        this.plants = [];
+        this.rocks = [];
+        
+        this.init();
+    }
+    
+    init() {
+        this.createFishes(12);
+        this.createBubbles(30);
+        this.createPlants(8);
+        this.createRocks(5);
+        
+        this.animate();
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            this.handleResize();
+        });
+        
+        // Add click interaction to add fish
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.fish')) {
+                this.addFishAtPosition(e.clientX, e.clientY);
             }
         });
     }
-});
-
-// ===== Add Hover Effect to Service Cards =====
-const serviceCards = document.querySelectorAll('.service-card');
-
-serviceCards.forEach(card => {
-    card.addEventListener('mouseenter', function() {
-        serviceCards.forEach(c => {
-            if (c !== card) {
-                c.style.opacity = '0.7';
+    
+    createFishes(count) {
+        for (let i = 0; i < count; i++) {
+            this.fishes.push(new Fish(this.fishContainer));
+        }
+    }
+    
+    createBubbles(count) {
+        for (let i = 0; i < count; i++) {
+            const bubble = new Bubble(this.bubblesContainer);
+            // Stagger initial positions
+            bubble.y = Math.random() * window.innerHeight;
+            bubble.element.style.top = `${bubble.y}px`;
+            this.bubbles.push(bubble);
+        }
+    }
+    
+    createPlants(count) {
+        const spacing = window.innerWidth / count;
+        for (let i = 0; i < count; i++) {
+            const x = spacing * i + Math.random() * 50;
+            this.plants.push(new Plant(this.plantsContainer, x));
+        }
+    }
+    
+    createRocks(count) {
+        for (let i = 0; i < count; i++) {
+            const x = Math.random() * (window.innerWidth - 100);
+            this.rocks.push(new Rock(this.rocksContainer, x));
+        }
+    }
+    
+    addFishAtPosition(x, y) {
+        const fish = new Fish(this.fishContainer);
+        fish.x = x;
+        fish.y = y;
+        fish.updatePosition();
+        this.fishes.push(fish);
+        
+        // Limit total fish count
+        if (this.fishes.length > 20) {
+            const oldFish = this.fishes.shift();
+            oldFish.remove();
+        }
+    }
+    
+    handleResize() {
+        // Remove elements that are out of bounds
+        this.fishes.forEach(fish => {
+            if (fish.x > window.innerWidth) {
+                fish.x = window.innerWidth - 100;
             }
         });
-    });
-    
-    card.addEventListener('mouseleave', function() {
-        serviceCards.forEach(c => {
-            c.style.opacity = '1';
+        
+        this.bubbles.forEach(bubble => {
+            if (bubble.x > window.innerWidth) {
+                bubble.x = window.innerWidth - 50;
+            }
         });
-    });
-});
-
-// ===== Page Load Animation =====
-window.addEventListener('load', () => {
-    document.body.style.opacity = '0';
-    document.body.style.transition = 'opacity 0.5s ease';
+    }
     
-    setTimeout(() => {
-        document.body.style.opacity = '1';
-    }, 100);
-});
+    animate() {
+        // Update all fishes
+        this.fishes.forEach(fish => {
+            fish.swim();
+        });
+        
+        // Update all bubbles
+        this.bubbles.forEach(bubble => {
+            bubble.rise();
+        });
+        
+        requestAnimationFrame(() => this.animate());
+    }
+}
 
-// ===== Console Message =====
-console.log('%c🌍 Wanderlust Travel - Discover Your Next Adventure!', 'font-size: 20px; font-weight: bold; color: #667eea;');
-console.log('%cBuilt with ❤️ for travel enthusiasts', 'font-size: 14px; color: #764ba2;');
+// Initialize aquarium when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new Aquarium();
+});
