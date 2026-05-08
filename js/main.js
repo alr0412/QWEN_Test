@@ -110,20 +110,21 @@ class Aquarium3D {
     }
     
     createSeabed() {
-        // Sandy bottom
-        const sandGeometry = new THREE.PlaneGeometry(120, 80, 32, 32);
+        // Sandy bottom - single continuous plane
+        const sandGeometry = new THREE.PlaneGeometry(120, 80, 64, 64);
         
         // Add some vertex displacement for uneven terrain
         const positions = sandGeometry.attributes.position.array;
         for (let i = 0; i < positions.length; i += 3) {
-            positions[i + 2] = Math.random() * 2; // Small height variation
+            positions[i + 2] = Math.random() * 1.5; // Small height variation
         }
         sandGeometry.computeVertexNormals();
         
-        const sandMaterial = new THREE.MeshPhongMaterial({
+        const sandMaterial = new THREE.MeshStandardMaterial({
             color: 0xc4a574,
-            side: THREE.DoubleSide,
-            flatShading: true
+            roughness: 0.8,
+            metalness: 0.1,
+            side: THREE.DoubleSide
         });
         const sand = new THREE.Mesh(sandGeometry, sandMaterial);
         sand.rotation.x = -Math.PI / 2;
@@ -147,7 +148,7 @@ class Aquarium3D {
         body.castShadow = true;
         fishGroup.add(body);
         
-        // Tail fin
+        // Tail fin - rotated 90 degrees to be correctly positioned
         const tailGeometry = new THREE.ConeGeometry(0.5, 1.5, 4);
         const tailMaterial = new THREE.MeshPhongMaterial({
             color: color,
@@ -155,7 +156,7 @@ class Aquarium3D {
         });
         const tail = new THREE.Mesh(tailGeometry, tailMaterial);
         tail.rotation.x = Math.PI / 2;
-        tail.rotation.y = Math.PI;
+        tail.rotation.z = Math.PI / 2; // Rotate 90 degrees around Z axis
         tail.position.set(-2, 0, 0);
         tail.castShadow = true;
         fishGroup.add(tail);
@@ -458,10 +459,10 @@ class Aquarium3D {
             // Smooth rotation
             mesh.rotation.y += (Math.random() - 0.5) * turnSpeed;
             
-            // Tail animation
+            // Tail animation - adjusted for new tail orientation (rotation around Z axis)
             fishData.tailAngle = Math.sin(fishData.swimPhase * 2) * 0.3;
             if (mesh.children[1]) { // Tail is second child
-                mesh.children[1].rotation.y = Math.PI + fishData.tailAngle;
+                mesh.children[1].rotation.z = Math.PI / 2 + fishData.tailAngle;
             }
         });
     }
@@ -503,8 +504,8 @@ class Aquarium3D {
     animate() {
         requestAnimationFrame(() => this.animate());
         
-        // Update camera based on mouse position
-        this.targetRotationY = this.mouseX * 0.5;
+        // Update camera based on mouse position (non-inverted)
+        this.targetRotationY = -this.mouseX * 0.5;
         this.targetRotationX = this.mouseY * 0.3;
         
         // Smooth camera movement
