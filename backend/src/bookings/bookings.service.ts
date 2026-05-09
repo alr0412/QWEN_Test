@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { RedisService } from '../prisma/redis.service';
+import { InMemoryLockService } from './in-memory-lock.service';
 import { PaymentsService } from './payments.service';
 
 @Injectable()
 export class BookingsService {
   constructor(
     private prisma: PrismaService,
-    private redisService: RedisService,
+    private lockService: InMemoryLockService,
     private paymentsService: PaymentsService,
   ) {}
 
@@ -29,13 +29,13 @@ export class BookingsService {
 
     // Check if slot is already locked or booked
     const lockKey = `slot:${barberId}:${date}:${startTime}`;
-    const isLocked = await this.redisService.isLocked(lockKey);
+    const isLocked = await this.lockService.isLocked(lockKey);
     if (isLocked) {
       throw new Error('Slot is currently being booked by another customer');
     }
 
     // Try to lock the slot
-    const locked = await this.redisService.lockSlot(lockKey, customerId, 300); // 5 min TTL
+    const locked = await this.lockService.lockSlot(lockKey, customerId, 300); // 5 min TTL
     if (!locked) {
       throw new Error('Slot is no longer available');
     }
@@ -49,7 +49,7 @@ export class BookingsService {
         customerId,
         barberId,
         serviceId,
-        date: new Date(date),
+        date, // Store as string (YYYY-MM-DD)
         startTime,
         endTime,
         status: 'RESERVED',
@@ -86,8 +86,8 @@ export class BookingsService {
     });
 
     // Remove the lock (or let it expire naturally)
-    const lockKey = `slot:${booking.barberId}:${booking.date.toISOString().split('T')[0]}:${booking.startTime}`;
-    await this.redisService.unlockSlot(lockKey);
+    const lockKey = `slot:${booking.barberId}:${booking.date}:${booking.startTime}`;
+    await this.lockService.unlockSlot(lockKey);
 
     return true;
   }
@@ -107,7 +107,7 @@ export class BookingsService {
     const where: any = { barberId };
     
     if (date) {
-      where.date = new Date(date);
+      where.date = date; // Compare as string
     }
     
     if (status) {
@@ -132,8 +132,8 @@ export class BookingsService {
 
     // Unlock the slot if it was reserved
     if (booking.status === 'RESERVED') {
-      const lockKey = `slot:${booking.barberId}:${booking.date.toISOString().split('T')[0]}:${booking.startTime}`;
-      await this.redisService.unlockSlot(lockKey);
+      const lockKey = `slot:${booking.barberId}:${booking.date}:${booking.startTime}`;
+      await this.lockService.unlockSlot(lockKey);
     }
 
     return this.prisma.booking.update({

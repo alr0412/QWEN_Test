@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 enum UserRole {
@@ -75,7 +75,7 @@ model Booking {
   barber    BarberProfile @relation(fields: [barberId], references: [id])
   serviceId String
   service   Service      @relation(fields: [serviceId], references: [id])
-  date      DateTime     @db.Date
+  date      String     // YYYY-MM-DD format for SQLite compatibility
   startTime String // HH:mm format
   endTime   String // HH:mm format
   status    BookingStatus @default(RESERVED)
