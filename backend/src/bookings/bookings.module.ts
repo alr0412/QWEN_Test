@@ -8,6 +8,6 @@ import { PaymentsModule } from '../payments/payments.module';
 @Module({
   imports: [PrismaModule, PaymentsModule],
   controllers: [BookingsController],
-  providers: [BookingsService, InMemoryLockService],
+  providers: [BookingsService, InMemoryLockService, PaymentsService],
 })
 export class BookingsModule {}
