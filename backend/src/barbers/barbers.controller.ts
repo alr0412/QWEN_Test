@@ -1,6 +1,5 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
 import { BarbersService } from './barbers.service';
-import { RedisService } from '../prisma/redis.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { BarberAuthGuard } from '../auth/barber-auth.guard';
 import { CreateBarberProfileDto, SetAvailabilityDto } from './dto/barber.dto';
@@ -9,7 +8,6 @@ import { CreateBarberProfileDto, SetAvailabilityDto } from './dto/barber.dto';
 export class BarbersController {
   constructor(
     private barbersService: BarbersService,
-    private redisService: RedisService,
   ) {}
 
   @Get()
@@ -24,7 +22,7 @@ export class BarbersController {
 
   @Get(':id/slots')
   async getAvailableSlots(@Param('id') barberId: string, @Query('date') date: string) {
-    return this.barbersService.getAvailableSlots(barberId, date, this.redisService);
+    return this.barbersService.getAvailableSlots(barberId, date);
   }
 
   @UseGuards(JwtAuthGuard, BarberAuthGuard)

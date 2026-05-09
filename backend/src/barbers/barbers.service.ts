@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { InMemoryLockService } from '../bookings/in-memory-lock.service';
 
 @Injectable()
 export class BarbersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private lockService: InMemoryLockService,
+  ) {}
 
   async findAll(search?: string, address?: string) {
     const where: any = {};
@@ -37,7 +41,7 @@ export class BarbersService {
     });
   }
 
-  async getAvailableSlots(barberId: string, date: string, redisService: any) {
+  async getAvailableSlots(barberId: string, date: string) {
     const barber = await this.prisma.barberProfile.findUnique({
       where: { id: barberId },
       include: {
@@ -79,15 +83,15 @@ export class BarbersService {
         const existingBooking = await this.prisma.booking.findFirst({
           where: {
             barberId,
-            date: targetDate,
+            date, // Compare as string
             startTime: timeStr,
             status: { in: ['RESERVED', 'CONFIRMED'] },
           },
         });
 
-        // Check if slot is locked in Redis
+        // Check if slot is locked
         const lockKey = `slot:${barberId}:${date}:${timeStr}`;
-        const isLocked = await redisService.isLocked(lockKey);
+        const isLocked = await this.lockService.isLocked(lockKey);
 
         if (!existingBooking && !isLocked) {
           slots.push(timeStr);
