@@ -1,0 +1,48 @@
+```
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# IDE files
+.vscode/
+
+# Build artifacts
+dist/
+build/
+target/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Coverage reports
+coverage/
+htmlcov/
+.coverage
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Prisma
+prisma/migrations/
+
+# Docker
+.dockerenv
+```
